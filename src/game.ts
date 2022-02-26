@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
+
 const Keyboard = require('pixi.js-keyboard');
 const Mouse = require('pixi.js-mouse');
-const Graphics = new PIXI.Graphics();
 
 const appCanvas = document.createElement("canvas");
 appCanvas.style.cssText = `
@@ -20,6 +20,10 @@ export const app = new PIXI.Application({
 });
 app.renderer.resize(window.innerWidth, window.innerHeight);
 
+const boss = function (n: number) {
+    return { x1: 0.1 * n, y1: 0, x2: 100 + 0.1 * n, y2: 200 };
+};
+
 // create a new Sprite from an image path
 const character = PIXI.AnimatedSprite.fromImages([
     'assets/mascot/00.png',
@@ -37,25 +41,50 @@ const character = PIXI.AnimatedSprite.fromImages([
 // center the sprite's anchor point
 character.anchor.set(0.5);
 character.animationSpeed = 0.25;
+character.width /= 2;
+character.height /= 2;
 character.play();
 // move the sprite to the center of the screen
 character.x = app.screen.width / 2;
 character.y = app.screen.height / 2;
 
 app.stage.addChild(character);
-app.stage.addChild(Graphics);
 
 let secondsElapsed = 0;
+let lastTick = 0;
+
+type Bullet = { sprite: PIXI.Sprite, rotation: number };
+let allyBullets: Bullet[] = [];
 
 // Listen for animate update
 app.ticker.add((delta) => {
     Keyboard.update();
     Mouse.update();
 
-    secondsElapsed += delta;
-    Graphics.lineStyle(2, 0xFEEB77, 1);
-    Graphics.drawRect(50, 50, 100, 100);
-    Graphics.endFill();
+    secondsElapsed += app.ticker.deltaMS / 1000;
+    // Every second, shoot a bullet
+    if (secondsElapsed - lastTick > 1) {
+        lastTick++;
+
+        const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
+        bullet.x = character.x;
+        bullet.y = character.y;
+        app.stage.addChild(bullet);
+        allyBullets.push({ sprite: bullet, rotation: character.rotation + Math.PI });
+    }
+
+    // Update bullets
+    const newAllyBullets: Bullet[] = [];
+    for (const bullet of allyBullets) {
+        bullet.sprite.x += Math.cos(bullet.rotation) * 10;
+        bullet.sprite.y += Math.sin(bullet.rotation) * 10;
+        if (bullet.sprite.x > app.screen.width || bullet.sprite.x < 0 || bullet.sprite.y > app.screen.height || bullet.sprite.y < 0) {
+            app.stage.removeChild(bullet.sprite);
+        } else {
+            newAllyBullets.push(bullet);
+        }
+    }
+    allyBullets = newAllyBullets;
 
     const speed = 5 * delta;
     if (Keyboard.isKeyDown('ArrowLeft', 'KeyA'))
@@ -66,12 +95,4 @@ app.ticker.add((delta) => {
         character.y -= speed;
     if (Keyboard.isKeyDown('ArrowDown', 'KeyS'))
         character.y += speed;
-
-    if (Mouse.isButtonDown(Mouse.Button.LEFT)) {
-        character.rotation += 0.1 * delta;
-    }
-
-    if (Mouse.isButtonDown(Mouse.Button.RIGHT)) {
-        character.rotation -= 0.1 * delta;
-    }
 });
