@@ -20,16 +20,16 @@ export const app = new PIXI.Application({
 app.renderer.resize(window.innerWidth, window.innerHeight);
 
 // create a new Sprite from an image path
-const bunny = PIXI.Sprite.from('assets/hello-world.png');
+const character = PIXI.Sprite.from('assets/mascot.gif');
 
 // center the sprite's anchor point
-bunny.anchor.set(0.5);
+character.anchor.set(0.5);
 
 // move the sprite to the center of the screen
-bunny.x = app.screen.width / 2;
-bunny.y = app.screen.height / 2;
+character.x = app.screen.width / 2;
+character.y = app.screen.height / 2;
 
-app.stage.addChild(bunny);
+app.stage.addChild(character);
 
 // Listen for animate update
 app.ticker.add((delta) => {
@@ -38,19 +38,19 @@ app.ticker.add((delta) => {
 
     const speed = 5 * delta;
     if (Keyboard.isKeyDown('ArrowLeft', 'KeyA'))
-        bunny.x -= speed;
+        character.x -= speed;
     if (Keyboard.isKeyDown('ArrowRight', 'KeyD'))
-        bunny.x += speed;
+        character.x += speed;
     if (Keyboard.isKeyDown('ArrowUp', 'KeyW'))
-        bunny.y -= speed;
+        character.y -= speed;
     if (Keyboard.isKeyDown('ArrowDown', 'KeyS'))
-        bunny.y += speed;
+        character.y += speed;
 
     if (Mouse.isButtonDown(Mouse.Button.LEFT)) {
-        bunny.rotation += 0.1 * delta;
+        character.rotation += 0.1 * delta;
     }
 
     if (Mouse.isButtonDown(Mouse.Button.RIGHT)) {
-        bunny.rotation -= 0.1 * delta;
+        character.rotation -= 0.1 * delta;
     }
 });
