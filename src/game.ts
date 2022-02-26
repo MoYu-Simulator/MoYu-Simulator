@@ -1,7 +1,11 @@
 import * as PIXI from 'pixi.js';
+import * as bossInfo from './lec_sample.json';
 
+const graphics = new PIXI.Graphics();
 const Keyboard = require('pixi.js-keyboard');
 const Mouse = require('pixi.js-mouse');
+const WIDTH0 = 1280;
+const HEIGHT0 = 720;
 
 const appCanvas = document.createElement("canvas");
 appCanvas.style.cssText = `
@@ -19,10 +23,6 @@ export const app = new PIXI.Application({
     autoStart: false,
 });
 app.renderer.resize(window.innerWidth, window.innerHeight);
-
-const boss = function (n: number) {
-    return { x1: 0.1 * n, y1: 0, x2: 100 + 0.1 * n, y2: 200 };
-};
 
 // create a new Sprite from an image path
 const character = PIXI.AnimatedSprite.fromImages([
@@ -49,6 +49,7 @@ character.x = app.screen.width / 2;
 character.y = app.screen.height / 2;
 
 app.stage.addChild(character);
+app.stage.addChild(graphics);
 
 let secondsElapsed = 0;
 let lastTick = 0;
@@ -85,6 +86,36 @@ app.ticker.add((delta) => {
         }
     }
     allyBullets = newAllyBullets;
+
+    // Update boss
+    const tick = Math.floor(secondsElapsed);
+    console.log(bossInfo[tick]);
+    const bossPos = bossInfo[tick].boss_pos;
+    graphics.clear();
+    graphics.beginFill(0xFF0000, 0.5);
+    graphics.drawRect(
+        bossPos[0] * app.screen.width / WIDTH0,
+        bossPos[2] * app.screen.height / HEIGHT0,
+        (bossPos[1] - bossPos[0]) * app.screen.width / WIDTH0,
+        (bossPos[3] - bossPos[2]) * app.screen.height / HEIGHT0,
+    );
+    graphics.endFill();
+
+    const facePos = bossInfo[tick].face_pos;
+    if (facePos[0] != -1) {
+        if (bossInfo[tick].face_front)
+            graphics.beginFill(0x00FF000, 0.7);
+        else
+            graphics.beginFill(0xFF00000, 0.7);
+        graphics.drawRect(
+            facePos[0] * app.screen.width / WIDTH0,
+            facePos[2] * app.screen.height / HEIGHT0,
+            (facePos[1] - facePos[0]) * app.screen.width / WIDTH0,
+            (facePos[3] - facePos[2]) * app.screen.height / HEIGHT0,
+        );
+        graphics.endFill();
+    }
+
 
     const speed = 5 * delta;
     if (Keyboard.isKeyDown('ArrowLeft', 'KeyA'))
