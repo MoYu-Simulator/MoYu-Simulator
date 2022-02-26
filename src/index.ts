@@ -13,7 +13,6 @@ const main = async () => {
     // Main app
     let app = new PIXI.Application();
 
-    // Display application properly
     document.body.style.margin = '0';
     app.renderer.view.style.position = 'absolute';
     app.renderer.view.style.display = 'block';
@@ -26,7 +25,17 @@ const main = async () => {
 
     // Load assets
     await load(app);
-    document.body.appendChild(app.view);
+
+    // Add video player
+    const videoPlayer = document.createElement("video");
+    videoPlayer.src = "assets/lec_sample.mp4";
+    videoPlayer.controls = true;
+    document.body.appendChild(videoPlayer);
+    videoPlayer.addEventListener('play', () => {
+        document.body.appendChild(app.view);
+
+        app.ticker.start();
+    });
 
     // Set scene
     var scene = new HelloWorld(app);

@@ -1,3 +1,5 @@
+.DS_Store
+
 shell.nix
 
 **/node_modules/
