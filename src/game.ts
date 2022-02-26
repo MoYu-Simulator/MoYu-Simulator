@@ -20,11 +20,22 @@ export const app = new PIXI.Application({
 app.renderer.resize(window.innerWidth, window.innerHeight);
 
 // create a new Sprite from an image path
-const character = PIXI.Sprite.from('assets/mascot.gif');
-
+const character = PIXI.AnimatedSprite.fromImages([
+    'assets/mascot/00.png',
+    'assets/mascot/01.png',
+    'assets/mascot/02.png',
+    'assets/mascot/03.png',
+    'assets/mascot/04.png',
+    'assets/mascot/05.png',
+    'assets/mascot/06.png',
+    'assets/mascot/07.png',
+    'assets/mascot/08.png',
+    'assets/mascot/09.png',
+    'assets/mascot/10.png',
+]);
 // center the sprite's anchor point
 character.anchor.set(0.5);
-
+character.play();
 // move the sprite to the center of the screen
 character.x = app.screen.width / 2;
 character.y = app.screen.height / 2;
@@ -35,6 +46,7 @@ app.stage.addChild(character);
 app.ticker.add((delta) => {
     Keyboard.update();
     Mouse.update();
+
 
     const speed = 5 * delta;
     if (Keyboard.isKeyDown('ArrowLeft', 'KeyA'))
