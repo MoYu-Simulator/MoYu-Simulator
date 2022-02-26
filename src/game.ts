@@ -46,12 +46,10 @@ character.y = app.screen.height / 2;
 app.stage.addChild(character);
 
 
-var sum = 0
 var movable = true;
 // Listen for animate update
 app.ticker.add((delta) => {
     const speed = 5 * delta;
-    sum+=delta;
     Keyboard.update();
     if(movable){
         if (Keyboard.isKeyDown('KeyT')){
