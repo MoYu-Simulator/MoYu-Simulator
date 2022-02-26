@@ -1,7 +1,6 @@
-import * as PIXI from 'pixi.js';
 import { app } from './game';
 import { videoPlayer} from './video'
-
+import { scorePanel } from './score';
 const button = document.createElement("button");
 button.innerHTML = "Play";
 button.style.cssText=`
@@ -15,6 +14,7 @@ button.style.cssText=`
 button.addEventListener('click', () => {
     videoPlayer.play();
     app.ticker.start();
+    document.body.appendChild(scorePanel);
     button.style.visibility = "hidden";
 });
 document.body.appendChild(button);

@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import * as TWEEN from '@tweenjs/tween.js'
 const Keyboard = require('pixi.js-keyboard');
 const Mouse = require('pixi.js-mouse');
 
@@ -35,6 +36,8 @@ const character = PIXI.AnimatedSprite.fromImages([
 ]);
 // center the sprite's anchor point
 character.anchor.set(0.5);
+character.width /= 2;
+character.height /= 2;
 character.play();
 // move the sprite to the center of the screen
 character.x = app.screen.width / 2;
@@ -42,27 +45,81 @@ character.y = app.screen.height / 2;
 
 app.stage.addChild(character);
 
+
+var sum = 0
+var movable = true;
 // Listen for animate update
 app.ticker.add((delta) => {
-    Keyboard.update();
-    Mouse.update();
-
-
     const speed = 5 * delta;
-    if (Keyboard.isKeyDown('ArrowLeft', 'KeyA'))
-        character.x -= speed;
-    if (Keyboard.isKeyDown('ArrowRight', 'KeyD'))
-        character.x += speed;
-    if (Keyboard.isKeyDown('ArrowUp', 'KeyW'))
-        character.y -= speed;
-    if (Keyboard.isKeyDown('ArrowDown', 'KeyS'))
-        character.y += speed;
+    sum+=delta;
+    Keyboard.update();
+    if(movable){
+        if (Keyboard.isKeyDown('KeyT')){
+            console.log('T')
+            movable=false;
+            new TWEEN.Tween(character)
+            .to({
+                x: character.x + Math.cos(character.rotation + Math.PI) * 350,
+                y: character.y + Math.sin(character.rotation + Math.PI) * 350,
+            },400)
+            .easing(TWEEN.Easing.Linear.None)
+            .start()
 
-    if (Mouse.isButtonDown(Mouse.Button.LEFT)) {
-        character.rotation += 0.1 * delta;
+            new TWEEN.Tween(character)
+                .to({
+                    width: character.width / 2,
+                    height: character.height / 2
+                },200)
+                .easing(TWEEN.Easing.Linear.None)
+                .start()
+                .onComplete(()=>{
+                    new TWEEN.Tween(character)
+                        .to({
+                            width: character.width * 2,
+                            height: character.height * 2
+                        },200)
+                        .easing(TWEEN.Easing.Linear.None)
+                        .start()
+                        .onComplete(()=>{
+                            movable=true
+                        })    
+                })
+        } 
+        if (Keyboard.isKeyDown('KeyA'))
+            character.x -= speed;
+        if (Keyboard.isKeyDown('KeyD'))
+            character.x += speed;
+        if (Keyboard.isKeyDown('KeyW'))
+            character.y -= speed;
+        if (Keyboard.isKeyDown('KeyS'))
+            character.y += speed;
+        if (Keyboard.isKeyDown('ArrowUp')){
+            character.width*=1.02;
+            character.height*=1.02;
+        }
+        if (Keyboard.isKeyDown('ArrowDown')){
+            character.width/=1.02;
+            character.height/=1.02;
+        }
+        if (Keyboard.isKeyDown('ArrowLeft')) {
+            character.rotation += 0.1 * delta;
+        }
+        if (Keyboard.isKeyDown('ArrowRight')) {
+            character.rotation -= 0.1 * delta;
+        }
     }
-
-    if (Mouse.isButtonDown(Mouse.Button.RIGHT)) {
-        character.rotation -= 0.1 * delta;
-    }
+    //const x1 = Math.max(character.x - character.width / 2, 0);
+    //const y1 = Math.max(character.y - character.height / 2,0);
+    //const x2 = Math.min(character.x + character.width / 2, app.screen.width);
+    //const y2 = Math.min(character.y + character.height /2, app.screen.height);
+    //const area = Math.max(x2 - x1, 0) * Math.max(y2 - y1, 0);
+    //const percent = area / (app.screen.width * app.screen.height);
+    //console.log(percent);
 });
+
+
+function animate(time: number | undefined) {
+	requestAnimationFrame(animate)
+	TWEEN.update(time)
+}
+requestAnimationFrame(animate)
