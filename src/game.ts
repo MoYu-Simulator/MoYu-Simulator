@@ -59,7 +59,18 @@ type Bullet = { sprite: PIXI.Sprite, rotation: number };
 let allyBullets: Bullet[] = [];
 
 
+function convertPoint(facePos: number[]): number[] {
+    facePos[0] = facePos[0] * app.screen.width / WIDTH0
+    facePos[1] = facePos[1] * app.screen.width / WIDTH0
+    facePos[2] = facePos[2] * app.screen.height / HEIGHT0
+    facePos[3] = facePos[3] * app.screen.height / HEIGHT0
+    return facePos
+}
+
 var movable = true;
+var bossPos = bossInfo[0].boss_pos;
+var facePos = bossInfo[0].face_pos;
+var faceFront = false
 // Listen for animate update
 app.ticker.add((delta) => {
     Keyboard.update();
@@ -67,14 +78,21 @@ app.ticker.add((delta) => {
 
     secondsElapsed += app.ticker.deltaMS / 1000;
     // Every second, shoot a bullet
-    if (secondsElapsed - lastTick > 1) {
-        lastTick++;
+    if (secondsElapsed - lastTick > 0.5) {
+        lastTick += 1;
 
         const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
         bullet.x = character.x;
         bullet.y = character.y;
         app.stage.addChild(bullet);
         allyBullets.push({ sprite: bullet, rotation: character.rotation + Math.PI });
+
+        new TWEEN.Tween(bossPos)
+            .to(convertPoint(bossInfo[(lastTick)].boss_pos), 500)
+            .easing(TWEEN.Easing.Linear.None)
+            .start()
+        facePos = convertPoint(bossInfo[(lastTick)].face_pos)
+        faceFront = bossInfo[(lastTick)].face_front
     }
 
     // Update bullets
@@ -90,36 +108,34 @@ app.ticker.add((delta) => {
     }
     allyBullets = newAllyBullets;
 
-    // Update boss
-    const tick = Math.floor(secondsElapsed);
-    console.log(bossInfo[tick]);
-    const bossPos = bossInfo[tick].boss_pos;
     graphics.clear();
+
+    // Update boss
     graphics.beginFill(0xFF0000, 0.5);
     graphics.drawRect(
-        bossPos[0] * app.screen.width / WIDTH0,
-        bossPos[2] * app.screen.height / HEIGHT0,
-        (bossPos[1] - bossPos[0]) * app.screen.width / WIDTH0,
-        (bossPos[3] - bossPos[2]) * app.screen.height / HEIGHT0,
+        bossPos[0],
+        bossPos[2],
+        bossPos[1] - bossPos[0],
+        bossPos[3] - bossPos[2]
     );
     graphics.endFill();
 
-    const facePos = bossInfo[tick].face_pos;
-    if (facePos[0] != -1) {
-        if (bossInfo[tick].face_front)
+    console.log(facePos[0])
+    if (facePos[0]>0) {
+        if (faceFront)
             graphics.beginFill(0x00FF000, 0.7);
         else
             graphics.beginFill(0xFF00000, 0.7);
         graphics.drawRect(
-            facePos[0] * app.screen.width / WIDTH0,
-            facePos[2] * app.screen.height / HEIGHT0,
-            (facePos[1] - facePos[0]) * app.screen.width / WIDTH0,
-            (facePos[3] - facePos[2]) * app.screen.height / HEIGHT0,
+            facePos[0],
+            facePos[2],
+            facePos[1] - facePos[0],
+            facePos[3] - facePos[2]
         );
         graphics.endFill();
     }
 
-    const speed = 5 * delta;
+    const speed = Math.max(character.width, character.height) / 50
     Keyboard.update();
     if (movable) {
         if (Keyboard.isKeyDown('KeyT')) {
@@ -127,8 +143,8 @@ app.ticker.add((delta) => {
             movable = false;
             new TWEEN.Tween(character)
                 .to({
-                    x: character.x + Math.cos(character.rotation + Math.PI) * 350,
-                    y: character.y + Math.sin(character.rotation + Math.PI) * 350,
+                    x: character.x + Math.cos(character.rotation + Math.PI) * speed * 30,
+                    y: character.y + Math.sin(character.rotation + Math.PI) * speed * 30,
                 }, 400)
                 .easing(TWEEN.Easing.Linear.None)
                 .start()
