@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 const Keyboard = require('pixi.js-keyboard');
 const Mouse = require('pixi.js-mouse');
+const Graphics = new PIXI.Graphics();
 
 const appCanvas = document.createElement("canvas");
 appCanvas.style.cssText = `
@@ -35,18 +36,26 @@ const character = PIXI.AnimatedSprite.fromImages([
 ]);
 // center the sprite's anchor point
 character.anchor.set(0.5);
+character.animationSpeed = 0.25;
 character.play();
 // move the sprite to the center of the screen
 character.x = app.screen.width / 2;
 character.y = app.screen.height / 2;
 
 app.stage.addChild(character);
+app.stage.addChild(Graphics);
+
+let secondsElapsed = 0;
 
 // Listen for animate update
 app.ticker.add((delta) => {
     Keyboard.update();
     Mouse.update();
 
+    secondsElapsed += delta;
+    Graphics.lineStyle(2, 0xFEEB77, 1);
+    Graphics.drawRect(50, 50, 100, 100);
+    Graphics.endFill();
 
     const speed = 5 * delta;
     if (Keyboard.isKeyDown('ArrowLeft', 'KeyA'))

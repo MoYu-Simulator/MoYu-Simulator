@@ -1,10 +1,10 @@
 import * as PIXI from 'pixi.js';
 import { app } from './game';
-import { videoPlayer} from './video'
+import { videoPlayer } from './video'
 
 const button = document.createElement("button");
 button.innerHTML = "Play";
-button.style.cssText=`
+button.style.cssText = `
     position: fixed;
     top: 45%;
     left: 45%;

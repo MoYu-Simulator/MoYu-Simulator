@@ -19,6 +19,7 @@
         "webpack-dev-server": "^3.10.3"
     },
     "dependencies": {
+        "pixi-tween": "^0.2.0",
         "pixi.js": "5.2.1",
         "pixi.js-keyboard": "^1.1.6",
         "pixi.js-mouse": "^1.1.6"
