@@ -78,7 +78,7 @@ app.ticker.add((delta) => {
 
     secondsElapsed += app.ticker.deltaMS / 1000;
     // Every second, shoot a bullet
-    if (secondsElapsed - lastTick > 0.5) {
+    if (secondsElapsed - lastTick > 1) {
         lastTick += 1;
 
         const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
