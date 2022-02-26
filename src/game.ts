@@ -88,7 +88,7 @@ app.ticker.add((delta) => {
         allyBullets.push({ sprite: bullet, rotation: character.rotation + Math.PI });
 
         new TWEEN.Tween(bossPos)
-            .to(convertPoint(bossInfo[(lastTick)].boss_pos), 500)
+            .to(convertPoint(bossInfo[(lastTick)].boss_pos), 1000)
             .easing(TWEEN.Easing.Linear.None)
             .start()
         facePos = convertPoint(bossInfo[(lastTick)].face_pos)
