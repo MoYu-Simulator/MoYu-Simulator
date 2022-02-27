@@ -21,7 +21,7 @@ button.addEventListener('click', () => {
 });
 document.body.appendChild(button);
 
-setTimeout(()=>{
-    gg();
-    app.ticker.stop();
-},10*1000)
+//setTimeout(()=>{
+//    gg();
+//    app.ticker.stop();
+//},10*1000)

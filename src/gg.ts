@@ -1,4 +1,8 @@
+let gged = false;
+
 export function gg() {
+    if(gged) return;
+    gged=true;
     const audio = new Audio('assets/gg/gg.mp3');
     audio.autoplay=true;
     audio.play();
@@ -40,5 +44,5 @@ export function gg() {
             transition: opacity 3s ease-in;
         `;
         document.body.appendChild(banner);
-    },2000)
+    },5000)
 }
