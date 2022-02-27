@@ -55,8 +55,89 @@ app.stage.addChild(graphics);
 let secondsElapsed = 0;
 let lastTick = 0;
 
-type Bullet = { sprite: PIXI.Sprite, rotation: number };
+
+
+
+export class Enemy {
+
+    sprite : PIXI.Sprite;
+    invicible:Boolean;
+    life_time:number = 0;
+    app : PIXI.Application;
+    constructor(sprite : PIXI.Sprite,invicible:Boolean, app : PIXI.Application) {
+        this.sprite = sprite;
+        this.invicible = invicible;
+        this.app = app;
+    }
+
+    // deploy(){}
+    // attack(){}
+    // activate(){}
+    // destroy(){}
+    update() {}
+}
+
+class Turret extends Enemy{
+    character : PIXI.Sprite;
+    xTarget: number;
+    yTarget : number;
+    isArrived: Boolean = false;
+    bulletCooldown: number = 0;
+
+    constructor(sprite : PIXI.Sprite, app : PIXI.Application, xSpawn: number, ySpawn : number, character: PIXI.Sprite){
+        super(sprite,false, app);
+        this.character = character;
+        this.xTarget = Math.random() * (app.renderer.width - 50) + 25;
+        this.yTarget = Math.random() * (app.renderer.height - 50) + 25;
+        
+        sprite.x = xSpawn;
+        sprite.y = ySpawn;
+    }
+    
+    update() {
+        this.life_time += app.ticker.deltaMS / 1000;
+
+        if (Math.abs(this.character.x - this.sprite.x) < 5 && Math.abs(this.character.y - this.sprite.y) < 5) {
+            this.app.stop(); // TODO nerf
+        }
+        if (!this.isArrived){
+            
+
+            //deploy to the position
+            const xDelta = this.xTarget - this.sprite.x;
+            const yDelta = this.yTarget - this.sprite.y;
+            const magnitute = Math.sqrt(Math.pow(xDelta, 2) + Math.pow(yDelta, 2));
+            this.sprite.x += (xDelta / magnitute) * 10;
+            this.sprite.y += (yDelta / magnitute) * 10;
+            if (Math.abs(this.xTarget - this.sprite.x) < 10 && Math.abs(this.yTarget - this.sprite.y) < 10) {
+                this.isArrived = true; 
+            }
+        }else{
+            //we already arrived, so attack
+            this.bulletCooldown += 1;
+            if (this.bulletCooldown >= 60) {
+                this.bulletCooldown = 0;
+                const xDelta = this.character.x - this.sprite.x;
+                const yDelta = this.character.y - this.sprite.y;
+                const rotation = Math.atan2(yDelta, xDelta);
+                const bullet = PIXI.Sprite.from('assets/bullet.png'); // TODO change texture
+                bullet.x = this.sprite.x;
+                bullet.y = this.sprite.y;
+                bullet.width = 10;
+                bullet.height = 10;
+                app.stage.addChild(bullet);
+                enemyBullets.push({sprite: bullet, rotation: rotation});
+            }
+        }
+    }
+}
+
+type Bullet = { sprite: PIXI.Sprite, rotation: number};
 let allyBullets: Bullet[] = [];
+let enemyBullets : Bullet[] = [];
+let enemies : Enemy[] = [];
+let turretSpawningCooldown : number = 0;
+
 
 
 var movable = true;
@@ -78,8 +159,25 @@ app.ticker.add((delta) => {
     }
 
     // Update bullets
+    
     const newAllyBullets: Bullet[] = [];
     for (const bullet of allyBullets) {
+        const newEnemies : Enemy[] = [];
+
+        let hasCollided = false;
+        for (const enemy of enemies) {
+            if (Math.abs(bullet.sprite.x - enemy.sprite.x) < 50 && Math.abs(bullet.sprite.y - enemy.sprite.y) < 50) {
+                app.stage.removeChild(enemy.sprite);
+                app.stage.removeChild(bullet.sprite);
+                hasCollided=true;
+                break;
+            } else {
+                newEnemies.push(enemy);
+            }
+        }
+        enemies = newEnemies;
+        if (hasCollided) continue;
+
         bullet.sprite.x += Math.cos(bullet.rotation) * 10;
         bullet.sprite.y += Math.sin(bullet.rotation) * 10;
         if (bullet.sprite.x > app.screen.width || bullet.sprite.x < 0 || bullet.sprite.y > app.screen.height || bullet.sprite.y < 0) {
@@ -89,10 +187,47 @@ app.ticker.add((delta) => {
         }
     }
     allyBullets = newAllyBullets;
+    //console.log(enemies.length,enemyBullets.length);
+    const newEnemyBullets : Bullet[] = [];
+    for (const bullet of enemyBullets) {
+        // const newEnemies : Enemy[] = [];
+        // const newAllyBullets: Bullet[] = [];
+        // for (const enemy of enemies) {
+        //     if (Math.abs(bullet.sprite.x - enemy.sprite.x) < 5 && Math.abs(bullet.sprite.y - enemy.sprite.y) < 5) {
+        //         app.stage.removeChild(enemy.sprite);
+        //         app.stage.removeChild(bullet.sprite);
+        //     } else {
+        //         newEnemies.push(enemy);
+        //         newAllyBullets.push(bullet);
+        //     }
+        // }
+        // enemies = newEnemies;
+        // allyBullets = newAllyBullets;
+
+        bullet.sprite.x += Math.cos(bullet.rotation) * 10;
+        bullet.sprite.y += Math.sin(bullet.rotation) * 10;
+        if (bullet.sprite.x > app.screen.width || bullet.sprite.x < 0 || bullet.sprite.y > app.screen.height || bullet.sprite.y < 0) {
+            app.stage.removeChild(bullet.sprite);
+        } else {
+            newEnemyBullets.push(bullet);
+        }
+    }
+    enemyBullets = newEnemyBullets;
+
+    const newEmenies : Enemy[] = [];
+    for (const enemy of enemies) {
+        enemy.update();
+        if (enemy.life_time < 10) {
+            newEmenies.push(enemy)
+        }else {
+            app.stage.removeChild(enemy.sprite)
+        }
+    }
+    enemies=newEmenies;
 
     // Update boss
     const tick = Math.floor(secondsElapsed);
-    console.log(bossInfo[tick]);
+    // console.log(bossInfo[tick]);
     const bossPos = bossInfo[tick].boss_pos;
     graphics.clear();
     graphics.beginFill(0xFF0000, 0.5);
@@ -105,7 +240,19 @@ app.ticker.add((delta) => {
     graphics.endFill();
 
     const facePos = bossInfo[tick].face_pos;
+    turretSpawningCooldown += 1;
     if (facePos[0] != -1) {
+        if (turretSpawningCooldown >= 300) {
+            turretSpawningCooldown = 0;
+            const turretSprite : PIXI.Sprite = PIXI.Sprite.from('assets/turret.png');
+            turretSprite.width = 100;
+            turretSprite.height = 100;
+            const turret = new Turret(turretSprite, app, (facePos[0] + facePos[1]) / 2, (facePos[2] + facePos[3]) / 2, character);
+            app.stage.addChild(turretSprite);
+            enemies.push(turret);
+        }
+        
+
         if (bossInfo[tick].face_front)
             graphics.beginFill(0x00FF000, 0.7);
         else
@@ -123,7 +270,7 @@ app.ticker.add((delta) => {
     Keyboard.update();
     if (movable) {
         if (Keyboard.isKeyDown('KeyT')) {
-            console.log('T')
+            // console.log('T')
             movable = false;
             new TWEEN.Tween(character)
                 .to({
