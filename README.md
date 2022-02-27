@@ -1,6 +1,8 @@
 # Description
 [![video demo](game_example.png)](https://www.youtube.com/watch?v=J5YNJJJmtlw)
 
+Oxford Hack 2022 Project: https://devpost.com/software/moyu_simulator
+
 ## Inspiration
 Our main objective is to provide a fun way to "focus" on the mathematics lecture, by allowing the ~~player~~ user to keep track of the lecturer's face, movement as well as the whiteboard. 
 
@@ -34,6 +36,7 @@ More turret types, more bullet types, and more interaction suited to the user's 
 
 
 # Pixi.JS TypeScript boilerplate
+![pixijsstarterdemo](https://user-images.githubusercontent.com/1882000/117959954-cde93100-b31c-11eb-889b-4879bd596c6b.gif)
 
 I had a hard time setting up a development environment, so I decided to share it.
 It can be useful to start from there if you want to start developping a game for browsers quickly.
