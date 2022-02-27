@@ -3,7 +3,9 @@
     "version": "0.0.1",
     "description": "A boilerplate to start developping a PixiJS game or animation using TypeScript (VS Code & Chrome).",
     "scripts": {
-        "dev": "webpack-dev-server -d"
+        "dev": "webpack-dev-server -d",
+        "build": "webpack --mode production",
+        "deploy": "gh-pages -d dist"
     },
     "author": "Guillaume DESFORGES <aceus02@gmail.com>",
     "license": "MIT",
@@ -20,6 +22,7 @@
     },
     "dependencies": {
         "@types/tween.js": "^18.6.1",
+        "gh-pages": "^3.2.3",
         "pixi.js": "5.2.1",
         "pixi.js-keyboard": "^1.1.6",
         "pixi.js-mouse": "^1.1.6",
