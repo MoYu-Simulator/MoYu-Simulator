@@ -72,6 +72,14 @@ function insideBox(x: number, y: number, box: number[]) {
     return x > box[0] && x < box[1] && y > box[2] && y < box[3]
 }
 
+function shoot(){
+    const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
+    bullet.x = character.x;
+    bullet.y = character.y;
+    app.stage.addChild(bullet);
+    allyBullets.push({ sprite: bullet, rotation: character.rotation + Math.PI });
+}
+
 var movable = true;
 var bossPos = bossInfo[0].boss_pos;
 var facePos = bossInfo[0].face_pos;
@@ -85,12 +93,7 @@ app.ticker.add((delta) => {
     // Every second, shoot a bullet
     if (secondsElapsed - lastTick > 1) {
         lastTick += 1;
-
-        const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
-        bullet.x = character.x;
-        bullet.y = character.y;
-        app.stage.addChild(bullet);
-        allyBullets.push({ sprite: bullet, rotation: character.rotation + Math.PI });
+        shoot();
 
         new TWEEN.Tween(bossPos)
             .to(convertPoint(bossInfo[(lastTick)].boss_pos), 1000)
@@ -147,12 +150,12 @@ app.ticker.add((delta) => {
     Keyboard.update();
     if (movable) {
         if (Keyboard.isKeyDown('KeyT')) {
-            console.log('T')
             movable = false;
+            shoot();
             new TWEEN.Tween(character)
                 .to({
-                    x: character.x + Math.cos(character.rotation + Math.PI) * speed * 30,
-                    y: character.y + Math.sin(character.rotation + Math.PI) * speed * 30,
+                    x: character.x + Math.cos(character.rotation + Math.PI) * speed * 45,
+                    y: character.y + Math.sin(character.rotation + Math.PI) * speed * 45,
                 }, 400)
                 .easing(TWEEN.Easing.Linear.None)
                 .start()
@@ -165,6 +168,7 @@ app.ticker.add((delta) => {
                 .easing(TWEEN.Easing.Linear.None)
                 .start()
                 .onComplete(() => {
+                    shoot();
                     new TWEEN.Tween(character)
                         .to({
                             width: character.width * 2,
@@ -173,6 +177,7 @@ app.ticker.add((delta) => {
                         .easing(TWEEN.Easing.Linear.None)
                         .start()
                         .onComplete(() => {
+                            shoot();
                             movable = true
                         })
                 })
