@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 import * as bossInfo from './lec_sample.json';
 
 import * as TWEEN from '@tweenjs/tween.js'
+import { addScore } from './score';
 const graphics = new PIXI.Graphics();
 const Keyboard = require('pixi.js-keyboard');
 const Mouse = require('pixi.js-mouse');
@@ -67,6 +68,10 @@ function convertPoint(facePos: number[]): number[] {
     return facePos
 }
 
+function insideBox(x: number, y: number, box: number[]) {
+    return x > box[0] && x < box[1] && y > box[2] && y < box[3]
+}
+
 var movable = true;
 var bossPos = bossInfo[0].boss_pos;
 var facePos = bossInfo[0].face_pos;
@@ -100,8 +105,11 @@ app.ticker.add((delta) => {
     for (const bullet of allyBullets) {
         bullet.sprite.x += Math.cos(bullet.rotation) * 10;
         bullet.sprite.y += Math.sin(bullet.rotation) * 10;
-        if (bullet.sprite.x > app.screen.width || bullet.sprite.x < 0 || bullet.sprite.y > app.screen.height || bullet.sprite.y < 0) {
+        if (!insideBox(bullet.sprite.x, bullet.sprite.y, [0, app.screen.width, 0, app.screen.height])) {
             app.stage.removeChild(bullet.sprite);
+        } else if(insideBox(bullet.sprite.x, bullet.sprite.y, bossPos)) {
+            app.stage.removeChild(bullet.sprite);
+            addScore(10);
         } else {
             newAllyBullets.push(bullet);
         }
