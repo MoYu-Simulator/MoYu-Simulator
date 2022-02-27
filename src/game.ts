@@ -44,8 +44,8 @@ const character = PIXI.AnimatedSprite.fromImages([
 // center the sprite's anchor point
 character.anchor.set(0.5);
 character.animationSpeed = 0.25;
-character.width /= 2;
-character.height /= 2;
+character.width /= 3;
+character.height /= 3;
 character.play();
 // move the sprite to the center of the screen
 character.x = app.screen.width / 2;
@@ -99,7 +99,7 @@ class Turret extends Enemy{
     update() {
         this.life_time += app.ticker.deltaMS / 1000;
 
-        if (Math.abs(this.character.x - this.sprite.x) < 50 && Math.abs(this.character.y - this.sprite.y) < 50) {
+        if (Math.abs(this.character.x - this.sprite.x) < this.character.height/2 && Math.abs(this.character.y - this.sprite.y) < this.character.height/2) {
             app.ticker.stop();
             gg();
         }
@@ -110,8 +110,8 @@ class Turret extends Enemy{
             const xDelta = this.xTarget - this.sprite.x;
             const yDelta = this.yTarget - this.sprite.y;
             const magnitute = Math.sqrt(Math.pow(xDelta, 2) + Math.pow(yDelta, 2));
-            this.sprite.x += (xDelta / magnitute) * 10;
-            this.sprite.y += (yDelta / magnitute) * 10;
+            this.sprite.x += (xDelta / magnitute) * 5;
+            this.sprite.y += (yDelta / magnitute) * 5;
             if (Math.abs(this.xTarget - this.sprite.x) < 10 && Math.abs(this.yTarget - this.sprite.y) < 10) {
                 this.isArrived = true; 
             }
@@ -173,6 +173,9 @@ app.ticker.add((delta) => {
     Mouse.update();
     const speed = Math.max(character.width, character.height) / 50
     secondsElapsed += app.ticker.deltaMS / 1000;
+
+    let char_hit = false;
+    let boss_hit = false;
     // Every second, shoot a bullet
     if (secondsElapsed - lastTick > 1) {
         lastTick += 1;
@@ -197,10 +200,10 @@ app.ticker.add((delta) => {
         let hasCollided = false;
         for (const enemy of enemies) {
             if (Math.abs(bullet.sprite.x - enemy.sprite.x) < 50 && Math.abs(bullet.sprite.y - enemy.sprite.y) < 50) {
-                app.stage.removeChild(enemy.sprite);
-                app.stage.removeChild(bullet.sprite);
+                if (!hasCollided) {app.stage.removeChild(enemy.sprite);
+                app.stage.removeChild(bullet.sprite);}
                 hasCollided=true;
-                break;
+                
             } else {
                 newEnemies.push(enemy);
             }
@@ -213,6 +216,7 @@ app.ticker.add((delta) => {
         if (!insideBox(bullet.sprite.x, bullet.sprite.y, [0, app.screen.width, 0, app.screen.height])) {
             app.stage.removeChild(bullet.sprite);
         } else if(insideBox(bullet.sprite.x, bullet.sprite.y, bossPos)) {
+            boss_hit = true
             app.stage.removeChild(bullet.sprite);
             addScore(speed);
         } else {
@@ -223,25 +227,21 @@ app.ticker.add((delta) => {
     //console.log(enemies.length,enemyBullets.length);
     const newEnemyBullets : Bullet[] = [];
     for (const bullet of enemyBullets) {
-        // const newEnemies : Enemy[] = [];
-        // const newAllyBullets: Bullet[] = [];
-        // for (const enemy of enemies) {
-        //     if (Math.abs(bullet.sprite.x - enemy.sprite.x) < 5 && Math.abs(bullet.sprite.y - enemy.sprite.y) < 5) {
-        //         app.stage.removeChild(enemy.sprite);
-        //         app.stage.removeChild(bullet.sprite);
-        //     } else {
-        //         newEnemies.push(enemy);
-        //         newAllyBullets.push(bullet);
-        //     }
-        // }
-        // enemies = newEnemies;
-        // allyBullets = newAllyBullets;
+        char_hit = false;
+        if (Math.abs(bullet.sprite.x - character.x) < character.width/2 && Math.abs(bullet.sprite.y - character.y) < character.height/2) {
+            if (!char_hit){
+                app.stage.removeChild(bullet.sprite);
+            }
+            char_hit = true;
+            addScore(-1);
+         }
+        // enemyBullets = newEnemyBullets;
 
         bullet.sprite.x += Math.cos(bullet.rotation) * 10;
         bullet.sprite.y += Math.sin(bullet.rotation) * 10;
         if (bullet.sprite.x > app.screen.width || bullet.sprite.x < 0 || bullet.sprite.y > app.screen.height || bullet.sprite.y < 0) {
             app.stage.removeChild(bullet.sprite);
-        } else {
+        } else if (!char_hit) {
             newEnemyBullets.push(bullet);
         }
     }
@@ -250,11 +250,7 @@ app.ticker.add((delta) => {
     const newEmenies : Enemy[] = [];
     for (const enemy of enemies) {
         enemy.update();
-        if (enemy.life_time < 10) {
-            newEmenies.push(enemy)
-        }else {
-            app.stage.removeChild(enemy.sprite)
-        }
+        newEmenies.push(enemy);
     }
     enemies=newEmenies;
 
@@ -265,7 +261,11 @@ app.ticker.add((delta) => {
     graphics.clear();
 
     // Update boss
-    graphics.beginFill(0xFF0000, 0.5);
+    if (boss_hit){
+        graphics.beginFill(0xFF0000, 0.2);
+    }else{
+        graphics.beginFill(0xFFFF00,0.2 );
+    }
     graphics.drawRect(
         bossPos[0],
         bossPos[2],
