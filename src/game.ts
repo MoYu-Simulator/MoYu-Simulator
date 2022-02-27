@@ -62,11 +62,11 @@ let lastTick = 0;
 
 export class Enemy {
 
-    sprite : PIXI.Sprite;
-    invicible:Boolean;
-    life_time:number = 0;
-    app : PIXI.Application;
-    constructor(sprite : PIXI.Sprite,invicible:Boolean, app : PIXI.Application) {
+    sprite: PIXI.Sprite;
+    invicible: Boolean;
+    life_time: number = 0;
+    app: PIXI.Application;
+    constructor(sprite: PIXI.Sprite, invicible: Boolean, app: PIXI.Application) {
         this.sprite = sprite;
         this.invicible = invicible;
         this.app = app;
@@ -76,35 +76,35 @@ export class Enemy {
     // attack(){}
     // activate(){}
     // destroy(){}
-    update() {}
+    update() { }
 }
 
-class Turret extends Enemy{
-    character : PIXI.Sprite;
+class Turret extends Enemy {
+    character: PIXI.Sprite;
     xTarget: number;
-    yTarget : number;
+    yTarget: number;
     isArrived: Boolean = false;
     bulletCooldown: number = 0;
 
-    constructor(sprite : PIXI.Sprite, app : PIXI.Application, xSpawn: number, ySpawn : number, character: PIXI.Sprite){
-        super(sprite,false, app);
+    constructor(sprite: PIXI.Sprite, app: PIXI.Application, xSpawn: number, ySpawn: number, character: PIXI.Sprite) {
+        super(sprite, false, app);
         this.character = character;
         this.xTarget = Math.random() * (app.renderer.width - 50) + 25;
         this.yTarget = Math.random() * (app.renderer.height - 50) + 25;
-        
+
         sprite.x = xSpawn;
         sprite.y = ySpawn;
     }
-    
+
     update() {
         this.life_time += app.ticker.deltaMS / 1000;
 
-        if (Math.abs(this.character.x - this.sprite.x) < this.character.height/2 && Math.abs(this.character.y - this.sprite.y) < this.character.height/2) {
+        if (Math.abs(this.character.x - this.sprite.x) < this.character.height / 2 && Math.abs(this.character.y - this.sprite.y) < this.character.height / 2) {
             app.ticker.stop();
             gg();
         }
-        if (!this.isArrived){
-            
+        if (!this.isArrived) {
+
 
             //deploy to the position
             const xDelta = this.xTarget - this.sprite.x;
@@ -113,9 +113,9 @@ class Turret extends Enemy{
             this.sprite.x += (xDelta / magnitute) * 5;
             this.sprite.y += (yDelta / magnitute) * 5;
             if (Math.abs(this.xTarget - this.sprite.x) < 10 && Math.abs(this.yTarget - this.sprite.y) < 10) {
-                this.isArrived = true; 
+                this.isArrived = true;
             }
-        }else{
+        } else {
             //we already arrived, so attack
             this.bulletCooldown += 1;
             if (this.bulletCooldown >= 60) {
@@ -129,19 +129,17 @@ class Turret extends Enemy{
                 bullet.width = 10;
                 bullet.height = 10;
                 app.stage.addChild(bullet);
-                enemyBullets.push({sprite: bullet, rotation: rotation});
+                enemyBullets.push({ sprite: bullet, rotation: rotation });
             }
         }
     }
 }
 
-type Bullet = { sprite: PIXI.Sprite, rotation: number};
+type Bullet = { sprite: PIXI.Sprite, rotation: number };
 let allyBullets: Bullet[] = [];
-let enemyBullets : Bullet[] = [];
-let enemies : Enemy[] = [];
-let turretSpawningCooldown : number = 0;
-
-
+let enemyBullets: Bullet[] = [];
+let enemies: Enemy[] = [];
+let turretSpawningCooldown: number = -150;
 
 function convertPoint(facePos: number[]): number[] {
     facePos[0] = facePos[0] * app.screen.width / WIDTH0
@@ -155,7 +153,7 @@ function insideBox(x: number, y: number, box: number[]) {
     return x > box[0] && x < box[1] && y > box[2] && y < box[3]
 }
 
-function shoot(){
+function shoot() {
     const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
     bullet.x = character.x;
     bullet.y = character.y;
@@ -181,7 +179,7 @@ app.ticker.add((delta) => {
         lastTick += 1;
         shoot();
 
-        if(bossInfo[(lastTick)].boss_pos) {
+        if (bossInfo[(lastTick)].boss_pos) {
             new TWEEN.Tween(bossPos)
                 .to(convertPoint(bossInfo[(lastTick)].boss_pos), 1000)
                 .easing(TWEEN.Easing.Linear.None)
@@ -192,18 +190,20 @@ app.ticker.add((delta) => {
     }
 
     // Update bullets
-    
+
     const newAllyBullets: Bullet[] = [];
     for (const bullet of allyBullets) {
-        const newEnemies : Enemy[] = [];
+        const newEnemies: Enemy[] = [];
 
         let hasCollided = false;
         for (const enemy of enemies) {
             if (Math.abs(bullet.sprite.x - enemy.sprite.x) < 50 && Math.abs(bullet.sprite.y - enemy.sprite.y) < 50) {
-                if (!hasCollided) {app.stage.removeChild(enemy.sprite);
-                app.stage.removeChild(bullet.sprite);}
-                hasCollided=true;
-                
+                if (!hasCollided) {
+                    app.stage.removeChild(enemy.sprite);
+                    app.stage.removeChild(bullet.sprite);
+                }
+                hasCollided = true;
+
             } else {
                 newEnemies.push(enemy);
             }
@@ -215,7 +215,7 @@ app.ticker.add((delta) => {
         bullet.sprite.y += Math.sin(bullet.rotation) * 10;
         if (!insideBox(bullet.sprite.x, bullet.sprite.y, [0, app.screen.width, 0, app.screen.height])) {
             app.stage.removeChild(bullet.sprite);
-        } else if(insideBox(bullet.sprite.x, bullet.sprite.y, bossPos)) {
+        } else if (insideBox(bullet.sprite.x, bullet.sprite.y, bossPos)) {
             boss_hit = true
             app.stage.removeChild(bullet.sprite);
             addScore(speed);
@@ -225,16 +225,18 @@ app.ticker.add((delta) => {
     }
     allyBullets = newAllyBullets;
     //console.log(enemies.length,enemyBullets.length);
-    const newEnemyBullets : Bullet[] = [];
+    const newEnemyBullets: Bullet[] = [];
     for (const bullet of enemyBullets) {
         char_hit = false;
-        if (Math.abs(bullet.sprite.x - character.x) < character.width/2 && Math.abs(bullet.sprite.y - character.y) < character.height/2) {
-            if (!char_hit){
+        if (Math.abs(bullet.sprite.x - character.x) < character.width / 2 && Math.abs(bullet.sprite.y - character.y) < character.height / 2) {
+            if (!char_hit) {
                 app.stage.removeChild(bullet.sprite);
             }
             char_hit = true;
-            addScore(-1);
-         }
+            addScore(-10);
+            character.width *= 1.01;
+            character.height *= 1.01;
+        }
         // enemyBullets = newEnemyBullets;
 
         bullet.sprite.x += Math.cos(bullet.rotation) * 10;
@@ -247,12 +249,12 @@ app.ticker.add((delta) => {
     }
     enemyBullets = newEnemyBullets;
 
-    const newEmenies : Enemy[] = [];
+    const newEmenies: Enemy[] = [];
     for (const enemy of enemies) {
         enemy.update();
         newEmenies.push(enemy);
     }
-    enemies=newEmenies;
+    enemies = newEmenies;
 
     // Update boss
     const tick = Math.floor(secondsElapsed);
@@ -261,10 +263,10 @@ app.ticker.add((delta) => {
     graphics.clear();
 
     // Update boss
-    if (boss_hit){
+    if (boss_hit) {
         graphics.beginFill(0xFF0000, 0.2);
-    }else{
-        graphics.beginFill(0xFFFF00,0.2 );
+    } else {
+        graphics.beginFill(0xFFFF00, 0.2);
     }
     graphics.drawRect(
         bossPos[0],
@@ -276,82 +278,87 @@ app.ticker.add((delta) => {
 
     //const facePos = bossInfo[tick].face_pos;
     turretSpawningCooldown += 1;
-    if (facePos[0]>0) {
+    if (facePos[0] > 0) {
         if (turretSpawningCooldown >= 300) {
             turretSpawningCooldown = 0;
-            const turretSprite : PIXI.Sprite = PIXI.Sprite.from('assets/turret.png');
+            const turretSprite: PIXI.Sprite = PIXI.Sprite.from('assets/turret.png');
             turretSprite.width = 100;
             turretSprite.height = 100;
             const turret = new Turret(turretSprite, app, (facePos[0] + facePos[1]) / 2, (facePos[2] + facePos[3]) / 2, character);
             app.stage.addChild(turretSprite);
             enemies.push(turret);
         }
-        
 
-        if (bossInfo[tick].face_front)
-            graphics.beginFill(0x00FF000, 0.7);
-        else
-            graphics.beginFill(0xFF00000, 0.7);
-        graphics.drawRect(
-            facePos[0],
-            facePos[2],
-            facePos[1] - facePos[0],
-            facePos[3] - facePos[2]
-        );
-        graphics.endFill();
+
+        // if (bossInfo[tick].face_front)
+        //     graphics.beginFill(0x00FF000, 0.7);
+        // else
+        //     graphics.beginFill(0xFF00000, 0.7);
+        // graphics.drawRect(
+        //     facePos[0],
+        //     facePos[2],
+        //     facePos[1] - facePos[0],
+        //     facePos[3] - facePos[2]
+        // );
+        // graphics.endFill();
     }
 
     Keyboard.update();
     if (movable) {
         if (Keyboard.isKeyDown('KeyT')) {
-            movable = false;
             shoot();
-            new TWEEN.Tween(character)
-                .to({
-                    x: character.x + Math.cos(character.rotation + Math.PI) * speed * 45,
-                    y: character.y + Math.sin(character.rotation + Math.PI) * speed * 45,
-                }, 400)
-                .easing(TWEEN.Easing.Linear.None)
-                .start()
-
-            new TWEEN.Tween(character)
-                .to({
-                    width: character.width / 2,
-                    height: character.height / 2
-                }, 200)
-                .easing(TWEEN.Easing.Linear.None)
-                .start()
-                .onComplete(() => {
-                    shoot();
+            if (character.x + Math.cos(character.rotation + Math.PI) * speed * 45 > 0 && character.x + Math.cos(character.rotation + Math.PI) * speed * 45 < app.screen.width) {
+                if (character.y + Math.sin(character.rotation + Math.PI) * speed * 45 > 0 && character.y + Math.sin(character.rotation + Math.PI) * speed * 45 < app.screen.height) {
+                    movable = false;
                     new TWEEN.Tween(character)
                         .to({
-                            width: character.width * 2,
-                            height: character.height * 2
+                            x: character.x + Math.cos(character.rotation + Math.PI) * speed * 45,
+                            y: character.y + Math.sin(character.rotation + Math.PI) * speed * 45,
+                        }, 400)
+                        .easing(TWEEN.Easing.Linear.None)
+                        .start()
+
+                    new TWEEN.Tween(character)
+                        .to({
+                            width: character.width / 2,
+                            height: character.height / 2
                         }, 200)
                         .easing(TWEEN.Easing.Linear.None)
                         .start()
                         .onComplete(() => {
                             shoot();
-                            movable = true
+                            new TWEEN.Tween(character)
+                                .to({
+                                    width: character.width * 2,
+                                    height: character.height * 2
+                                }, 200)
+                                .easing(TWEEN.Easing.Linear.None)
+                                .start()
+                                .onComplete(() => {
+                                    shoot();
+                                    movable = true
+                                })
                         })
-                })
+                }
+            }
         }
-        if (Keyboard.isKeyDown('KeyA'))
+        if (Keyboard.isKeyDown('KeyA') && character.x >= speed)
             character.x -= speed;
-        if (Keyboard.isKeyDown('KeyD'))
+        if (Keyboard.isKeyDown('KeyD') && character.x <= app.screen.width - speed)
             character.x += speed;
-        if (Keyboard.isKeyDown('KeyW'))
+        if (Keyboard.isKeyDown('KeyW') && character.y >= speed)
             character.y -= speed;
-        if (Keyboard.isKeyDown('KeyS'))
+        if (Keyboard.isKeyDown('KeyS') && character.y <= app.screen.height - speed)
             character.y += speed;
-        if (Keyboard.isKeyDown('ArrowUp')) {
-            character.width *= 1.02;
-            character.height *= 1.02;
-        }
-        if (Keyboard.isKeyDown('ArrowDown')) {
-            character.width /= 1.02;
-            character.height /= 1.02;
-        }
+
+        // if (Keyboard.isKeyDown('ArrowUp')) {
+        //     character.width *= 1.02;
+        //     character.height *= 1.02;
+        // }
+        // if (Keyboard.isKeyDown('ArrowDown')) {
+        //     character.width /= 1.02;
+        //     character.height /= 1.02;
+        // }
         if (Keyboard.isKeyDown('ArrowLeft')) {
             character.rotation += 0.1 * delta;
         }
@@ -359,6 +366,7 @@ app.ticker.add((delta) => {
             character.rotation -= 0.1 * delta;
         }
     }
+
     //const x1 = Math.max(character.x - character.width / 2, 0);
     //const y1 = Math.max(character.y - character.height / 2,0);
     //const x2 = Math.min(character.x + character.width / 2, app.screen.width);
