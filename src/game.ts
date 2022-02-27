@@ -2,6 +2,8 @@ import * as PIXI from 'pixi.js';
 import * as bossInfo from './lec_sample.json';
 
 import * as TWEEN from '@tweenjs/tween.js'
+import { addScore } from './score';
+import { gg } from './gg';
 const graphics = new PIXI.Graphics();
 const Keyboard = require('pixi.js-keyboard');
 const Mouse = require('pixi.js-mouse');
@@ -97,8 +99,9 @@ class Turret extends Enemy{
     update() {
         this.life_time += app.ticker.deltaMS / 1000;
 
-        if (Math.abs(this.character.x - this.sprite.x) < 5 && Math.abs(this.character.y - this.sprite.y) < 5) {
-            this.app.stop(); // TODO nerf
+        if (Math.abs(this.character.x - this.sprite.x) < 50 && Math.abs(this.character.y - this.sprite.y) < 50) {
+            app.ticker.stop();
+            gg();
         }
         if (!this.isArrived){
             
@@ -140,22 +143,49 @@ let turretSpawningCooldown : number = 0;
 
 
 
+function convertPoint(facePos: number[]): number[] {
+    facePos[0] = facePos[0] * app.screen.width / WIDTH0
+    facePos[1] = facePos[1] * app.screen.width / WIDTH0
+    facePos[2] = facePos[2] * app.screen.height / HEIGHT0
+    facePos[3] = facePos[3] * app.screen.height / HEIGHT0
+    return facePos
+}
+
+function insideBox(x: number, y: number, box: number[]) {
+    return x > box[0] && x < box[1] && y > box[2] && y < box[3]
+}
+
+function shoot(){
+    const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
+    bullet.x = character.x;
+    bullet.y = character.y;
+    app.stage.addChild(bullet);
+    allyBullets.push({ sprite: bullet, rotation: character.rotation + Math.PI });
+}
+
 var movable = true;
+var bossPos = bossInfo[0].boss_pos;
+var facePos = bossInfo[0].face_pos;
+var faceFront = false
 // Listen for animate update
 app.ticker.add((delta) => {
     Keyboard.update();
     Mouse.update();
-
+    const speed = Math.max(character.width, character.height) / 50
     secondsElapsed += app.ticker.deltaMS / 1000;
     // Every second, shoot a bullet
     if (secondsElapsed - lastTick > 1) {
-        lastTick++;
+        lastTick += 1;
+        shoot();
 
-        const bullet = new PIXI.Sprite(PIXI.Texture.WHITE);
-        bullet.x = character.x;
-        bullet.y = character.y;
-        app.stage.addChild(bullet);
-        allyBullets.push({ sprite: bullet, rotation: character.rotation + Math.PI });
+        if(bossInfo[(lastTick)].boss_pos) {
+            new TWEEN.Tween(bossPos)
+                .to(convertPoint(bossInfo[(lastTick)].boss_pos), 1000)
+                .easing(TWEEN.Easing.Linear.None)
+                .start()
+        }
+        facePos = convertPoint(bossInfo[(lastTick)].face_pos)
+        faceFront = bossInfo[(lastTick)].face_front
     }
 
     // Update bullets
@@ -180,8 +210,11 @@ app.ticker.add((delta) => {
 
         bullet.sprite.x += Math.cos(bullet.rotation) * 10;
         bullet.sprite.y += Math.sin(bullet.rotation) * 10;
-        if (bullet.sprite.x > app.screen.width || bullet.sprite.x < 0 || bullet.sprite.y > app.screen.height || bullet.sprite.y < 0) {
+        if (!insideBox(bullet.sprite.x, bullet.sprite.y, [0, app.screen.width, 0, app.screen.height])) {
             app.stage.removeChild(bullet.sprite);
+        } else if(insideBox(bullet.sprite.x, bullet.sprite.y, bossPos)) {
+            app.stage.removeChild(bullet.sprite);
+            addScore(speed);
         } else {
             newAllyBullets.push(bullet);
         }
@@ -228,20 +261,22 @@ app.ticker.add((delta) => {
     // Update boss
     const tick = Math.floor(secondsElapsed);
     // console.log(bossInfo[tick]);
-    const bossPos = bossInfo[tick].boss_pos;
+    //const bossPos = bossInfo[tick].boss_pos;
     graphics.clear();
+
+    // Update boss
     graphics.beginFill(0xFF0000, 0.5);
     graphics.drawRect(
-        bossPos[0] * app.screen.width / WIDTH0,
-        bossPos[2] * app.screen.height / HEIGHT0,
-        (bossPos[1] - bossPos[0]) * app.screen.width / WIDTH0,
-        (bossPos[3] - bossPos[2]) * app.screen.height / HEIGHT0,
+        bossPos[0],
+        bossPos[2],
+        bossPos[1] - bossPos[0],
+        bossPos[3] - bossPos[2]
     );
     graphics.endFill();
 
-    const facePos = bossInfo[tick].face_pos;
+    //const facePos = bossInfo[tick].face_pos;
     turretSpawningCooldown += 1;
-    if (facePos[0] != -1) {
+    if (facePos[0]>0) {
         if (turretSpawningCooldown >= 300) {
             turretSpawningCooldown = 0;
             const turretSprite : PIXI.Sprite = PIXI.Sprite.from('assets/turret.png');
@@ -258,24 +293,23 @@ app.ticker.add((delta) => {
         else
             graphics.beginFill(0xFF00000, 0.7);
         graphics.drawRect(
-            facePos[0] * app.screen.width / WIDTH0,
-            facePos[2] * app.screen.height / HEIGHT0,
-            (facePos[1] - facePos[0]) * app.screen.width / WIDTH0,
-            (facePos[3] - facePos[2]) * app.screen.height / HEIGHT0,
+            facePos[0],
+            facePos[2],
+            facePos[1] - facePos[0],
+            facePos[3] - facePos[2]
         );
         graphics.endFill();
     }
 
-    const speed = 5 * delta;
     Keyboard.update();
     if (movable) {
         if (Keyboard.isKeyDown('KeyT')) {
-            // console.log('T')
             movable = false;
+            shoot();
             new TWEEN.Tween(character)
                 .to({
-                    x: character.x + Math.cos(character.rotation + Math.PI) * 350,
-                    y: character.y + Math.sin(character.rotation + Math.PI) * 350,
+                    x: character.x + Math.cos(character.rotation + Math.PI) * speed * 45,
+                    y: character.y + Math.sin(character.rotation + Math.PI) * speed * 45,
                 }, 400)
                 .easing(TWEEN.Easing.Linear.None)
                 .start()
@@ -288,6 +322,7 @@ app.ticker.add((delta) => {
                 .easing(TWEEN.Easing.Linear.None)
                 .start()
                 .onComplete(() => {
+                    shoot();
                     new TWEEN.Tween(character)
                         .to({
                             width: character.width * 2,
@@ -296,6 +331,7 @@ app.ticker.add((delta) => {
                         .easing(TWEEN.Easing.Linear.None)
                         .start()
                         .onComplete(() => {
+                            shoot();
                             movable = true
                         })
                 })

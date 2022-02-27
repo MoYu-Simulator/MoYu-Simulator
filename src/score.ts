@@ -7,4 +7,10 @@ scorePanel.style.cssText = `
     z-index: 10;
     background-color: rgba(0, 255, 255, 0.8);
 `;
-scorePanel.innerText="Score: 233";
+scorePanel.innerText="Score: 0";
+
+var score = 0;
+export function addScore(x: number) {
+    score+=x;
+    scorePanel.innerText = `Score: ${Math.floor(score)}`;
+}

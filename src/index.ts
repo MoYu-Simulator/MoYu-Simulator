@@ -1,6 +1,8 @@
 import { app } from './game';
 import { videoPlayer } from './video'
 import { scorePanel } from './score';
+import { gg } from './gg';
+
 const button = document.createElement("button");
 button.innerHTML = "Play";
 button.style.cssText = `
@@ -18,3 +20,8 @@ button.addEventListener('click', () => {
     button.style.visibility = "hidden";
 });
 document.body.appendChild(button);
+
+setTimeout(()=>{
+    gg();
+    app.ticker.stop();
+},10*1000)
