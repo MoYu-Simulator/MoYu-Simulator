@@ -88,7 +88,7 @@ var faceFront = false
 app.ticker.add((delta) => {
     Keyboard.update();
     Mouse.update();
-
+    const speed = Math.max(character.width, character.height) / 50
     secondsElapsed += app.ticker.deltaMS / 1000;
     // Every second, shoot a bullet
     if (secondsElapsed - lastTick > 1) {
@@ -112,7 +112,7 @@ app.ticker.add((delta) => {
             app.stage.removeChild(bullet.sprite);
         } else if(insideBox(bullet.sprite.x, bullet.sprite.y, bossPos)) {
             app.stage.removeChild(bullet.sprite);
-            addScore(10);
+            addScore(speed);
         } else {
             newAllyBullets.push(bullet);
         }
@@ -146,7 +146,6 @@ app.ticker.add((delta) => {
         graphics.endFill();
     }
 
-    const speed = Math.max(character.width, character.height) / 50
     Keyboard.update();
     if (movable) {
         if (Keyboard.isKeyDown('KeyT')) {

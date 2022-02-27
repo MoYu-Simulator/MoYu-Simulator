@@ -12,5 +12,5 @@ scorePanel.innerText="Score: 0";
 var score = 0;
 export function addScore(x: number) {
     score+=x;
-    scorePanel.innerText = `Score: ${score}`;
+    scorePanel.innerText = `Score: ${Math.floor(score)}`;
 }
